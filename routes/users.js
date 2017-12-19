@@ -2,32 +2,38 @@ var express = require('express')
 var router = express.Router()
 var db = require('../db/api')
 var bcrypt = require('bcrypt')
+const saltRounds = 10;
 
-router.post('/signin', function(req, res, next){
-  db.signIn()
-  .then(function(agent){
+router.post('/signin', function(req, res, next) {
+  db.signIn().then(function(agent) {
     //Use bcrypt to log in
-      if (isMatch) {
-        //Route to /Assignment
-      }
-      else {
-        res.render('index', { title: 'gClassified', message: 'Incorrect login. Contents will self destruct' })
-      }
+    if (isMatch) {
+      //Route to /Assignment
+    } else {
+      res.render('index', {
+        title: 'gClassified',
+        message: 'Incorrect login. Contents will self destruct'
+      })
+    }
   })
 })
 
-router.post('/signup', function(req,res,next){
-  //Use bcrypt to Sign Up
-
-    db.signUp()
-    .then(function(agent){
-      if (agent[0].password === req.body.password) {
-        res.render('index', { title: 'gClassified', message: 'Password Must Be Hashed. Government Secrets are at Stake!' })
-      }
-      else {
-        res.render('index', { title: 'gClassified', message: 'Sign Up Successful' })
-      }
-    })
+router.post('/signup', function(req, res, next) {
+  db.checkIfExists(req.body.agentName).then(user => {
+    if (user.length < 1) {
+      bcrypt.hash(req.body.password, saltRounds, function(err, hash) {
+        req.body.password = hash
+        db.signUp(req.body).then(agent => {
+          res.render('index', {
+            title: 'gClassified',
+            message: 'Sign Up Successful'
+          })
+        })
+      });
+    } else {
+      res.render('index', {title: 'gClassified', message: 'Username already exists'})
+    }
+  })
 })
 
 module.exports = router
