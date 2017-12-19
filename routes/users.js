@@ -2,18 +2,25 @@ var express = require('express')
 var router = express.Router()
 var db = require('../db/api')
 var bcrypt = require('bcrypt')
+var fs = require('fs');
 const saltRounds = 10;
 
 router.post('/signin', function(req, res, next) {
-  db.signIn().then(function(agent) {
-    //Use bcrypt to log in
-    if (isMatch) {
-      //Route to /Assignment
+  db.signIn(req.body.agentId).then(function(agent) {
+    if (agent.length < 1) {
+      res.render('index', {message: 'Incorrect login. Contents will self destruct'})
     } else {
-      res.render('index', {
-        title: 'gClassified',
-        message: 'Incorrect login. Contents will self destruct'
-      })
+      bcrypt.compare(req.body.password, agent[0].password, function(err, response) {
+        if (response) {
+          console.log('success');
+          res.render('assignment', {agent: req.body.agentId})
+        } else {
+          res.render('index', {
+            title: 'gClassified',
+            message: 'Incorrect login. Contents will self destruct'
+          })
+        }
+      });
     }
   })
 })
@@ -31,9 +38,21 @@ router.post('/signup', function(req, res, next) {
         })
       });
     } else {
-      res.render('index', {title: 'gClassified', message: 'Username already exists'})
+      res.render('index', {
+        title: 'gClassified',
+        message: 'Username already exists'
+      })
     }
   })
+})
+
+router.post('/assignment', (req, res, next) => {
+  fs.writeFile('./message.txt', req.body.message, function(err) {
+    if (err) 
+      return console.log(err);
+    }
+  );
+  res.render('assignment', {message: 'message sent'})
 })
 
 module.exports = router

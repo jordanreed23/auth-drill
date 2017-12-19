@@ -4,8 +4,8 @@ function checkIfExists(user){
   return knex('my_user').where('agentName', user)
 }
 
-function signIn(){
-
+function signIn(user){
+  return knex('my_user').where('agentName', user)
 }
 
 function signUp(data){
