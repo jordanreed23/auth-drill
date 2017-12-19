@@ -12,8 +12,8 @@ router.post('/signin', function(req, res, next) {
     } else {
       bcrypt.compare(req.body.password, agent[0].password, function(err, response) {
         if (response) {
-          console.log('success');
-          res.render('assignment', {agent: req.body.agentId})
+          req.session.user = req.body.agentId
+          res.redirect('/users/' + req.body.agentId)
         } else {
           res.render('index', {
             title: 'gClassified',
@@ -48,11 +48,19 @@ router.post('/signup', function(req, res, next) {
 
 router.post('/assignment', (req, res, next) => {
   fs.writeFile('./message.txt', req.body.message, function(err) {
-    if (err) 
+    if (err)
       return console.log(err);
     }
   );
   res.render('assignment', {message: 'message sent'})
 })
+
+router.get('/:user', (req, res, next) => {
+  if (req.session.user !== req.params.user) {
+    res.redirect('/')
+  } else {
+    res.render('assignment', {agent: req.params.user})
+  }
+});
 
 module.exports = router
